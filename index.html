@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fragments UI</title>
+    <link rel="stylesheet">
+</head>
+<body>
+    <h1>Welcome to Fragments UI</h1>
+    <p>This is a simple web app for testing the Fragments microservice.</p>
+    
+    <h2>Fragments UI</h2>
+    <section>
+        <nav>
+            <button id="login">Login</button>
+            <button id="logout">Logout</button>
+        </nav>
+    </section>
+    <section hidden id="user">
+        <h3>Hello <span class="username"></span>!</h3>
+    </section>
+
+    <script src="main.js"></script>
+    <script src="src/auth.js"></script>
+    <script src="src/app.js"></script>
+</body>
+</html>

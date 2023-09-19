@@ -1,0 +1,24 @@
+{
+  "name": "fragments-ui",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Fragments UI testing web app",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourname/fragments-ui.git"
+  },
+  "author": "Olakunle Olatunji olatunjiolakunledave@gmail.com",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
+  },
+  "dependencies": {
+    "aws-amplify": "^5.3.11",
+    "dotenv": "^16.3.1"
+  }
+}
