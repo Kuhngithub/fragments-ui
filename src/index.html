@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fragments UI</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="App.js"></script>
+  </head>
+  <body>
+    <section hidden id="user" class="signInWelcome">
+      <h2>You are signed in as <span class="username"></span>!</h2>
+    </section>
+    <div class="topnav">
+      <h1>Fragments UI</h1>
+      <a href="index.html">Home</a>
+      
+      <a href="createFragment.html">Create</a>
+    </div>
+  
+    <section></section>
+    <div class="flex-container">
+      <div>
+        
+        <nav>
+          <button id="login">Login</button>
+          <button id="logout">Logout</button>
+        </nav>
+        <section hidden id="viewFragments">
+
+          <h2>Fragment List</h2>
+
+          <button id="getFragmentBtn">Refresh</button>
+          <table class="fragmentList">
+            <tr>
+              <th>id</th>
+              <th>Created</th>
+              <th>Updated</th>
+              <th>type</th>
+
+            </tr>
+          </table>
+        </section>
+
+        <section hidden id="editFragment">
+
+          <h2>Editing Fragment <span class="editFragmentId"></span></h2>
+          <p>To create a new fragment, simply select the file you would like to create a fragment with. 
+            Once it is uploaded you will see the preview on the right.
+        </p>
+          <input
+          type="file"
+          id="fileInput"
+          name="fileInput"
+          accept="text/plain, text/markdown, text/html, application/json, image/png, image/jpeg, image/webp, image/gif"
+        />
+        <br />
+        <p id="postFeedback"></p>
+        </section>
+      </div>
+      <div hidden id="user">
+        <h3>Preview</h3>
+        <pre id="output"></pre>
+        <img id="preview-img" />
+      </div>
+    </div>
+  </body>
+</html>

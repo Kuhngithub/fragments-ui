@@ -1,14 +1,25 @@
 // src/app.js
 
-import { Auth, getUser } from './auth';
+import { getUserFragments, getFragmentDataByExt } from "./api";
+import { Auth, getUser } from "./auth";
+import { newFileUploaded } from "./createNewFragment";
+
+var user;
+var userSection = document.querySelector("#user");
+var viewFragmentsSection = document.querySelector("#viewFragments");
+var editFragmentSection = document.querySelector("#editFragment");
 
 async function init() {
   // Get our UI elements
-  const userSection = document.querySelector('#user');
-  const loginBtn = document.querySelector('#login');
-  const logoutBtn = document.querySelector('#logout');
-  const fragmentText = document.querySelector('#fragmentText');
-  const createFragmentBtn = document.querySelector('#createFragment');
+
+  const loginBtn = document.querySelector("#login");
+  const logoutBtn = document.querySelector("#logout");
+  const getFragmentBtn = document.querySelector("#getFragmentBtn");
+
+  // Retrieve all fragments
+  getFragmentBtn.onclick = () => {
+    populateTable();
+  };
 
   // Wire up event handlers to deal with login and logout.
   loginBtn.onclick = () => {
@@ -23,60 +34,162 @@ async function init() {
   };
 
   // See if we're signed in (i.e., we'll have a `user` object)
-  const user = await getUser();
+  user = await getUser();
+
+  // Do an authenticated request to the fragments API server and log the result
+  // getUserFragments(user);
   if (!user) {
     // Disable the Logout button
     logoutBtn.disabled = true;
     return;
+  } else {
+    // if we are signed in, trigger a get request
+    populateTable();
   }
-
-  // Wire up the event handler for the "Create Fragment" button
-  createFragmentBtn.onclick = async () => {
-    const text = fragmentText.value.trim();
-    const cognitoUser = await Auth.currentAuthenticatedUser();
-    const idToken = cognitoUser.signInUserSession.idToken.jwtToken;
-
-
-    if (text) {
-      try {
-  const response = await fetch(`${process.env.API_URL}/v1/fragments`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain',
-      'Authorization': `Bearer ${idToken}`, // Include the Cognito token here
-    },
-    body: text,
-  });
-
-        if (response.status === 201) {
-          // Fragment created successfully
-          alert('Fragment created successfully');
-          // You can add more logic here, such as clearing the input field
-        } else {
-          // Handle other response statuses as needed
-          alert('Failed to create fragment');
-        }
-      } catch (error) {
-        console.error('Error creating fragment:', error);
-        alert('An error occurred while creating the fragment');
-      }
-    } else {
-      alert('Please enter fragment text');
-    }
-  };
 
   // Log the user info for debugging purposes
   console.log({ user });
 
   // Update the UI to welcome the user
   userSection.hidden = false;
-
+  viewFragmentsSection.hidden = false;
   // Show the user's username
-  userSection.querySelector('.username').innerText = user.username;
+  userSection.querySelector(".username").innerText = user.username;
 
   // Disable the Login button
   loginBtn.disabled = true;
+
+
+   // Add "change" event to the input selector.
+  // This will automatically upload any fragment that is selected.
+  fileInput.onchange = function (evt) {
+    var tgt = evt.target || window.event.srcElement,
+      files = tgt.files;
+    var extension = this.files[0].name.split(".").pop().toLowerCase();
+
+    newFileUploaded(user, files, extension, editFragmentSection.querySelector(".editFragmentId").innerText);
+  };
+}
+function getValidConversions(type) {
+  let conversions = [];
+  switch (type) {
+    case "text/plain":
+      conversions = [".txt"];
+      break;
+    case "text/markdown":
+      conversions = [".md", ".html", ".txt"];
+      break;
+    case "text/html":
+      conversions = [".html", ".txt"];
+      break;
+    case "application/json":
+      conversions = [".json", ".txt"];
+      break;
+    case "image/png":
+      conversions = [".png", ".jpg", ".webp", ".gif"];
+      break;
+    default:
+      conversions = [];
+  }
+
+  return conversions;
+}
+
+function populateTable() {
+
+  
+  let fragmentHtml = "";
+  let fragmentList = document.querySelector(".fragmentList");
+  fragmentList.innerHTML = "";
+  getUserFragments(user).then((data) => {
+    if (data.length) {
+      // Create the titles for each column and add to the table
+      let header = document.createElement("tr");
+      let headerOptions = [
+        "ID",
+        "Created",
+        "Updated",
+        "Type",
+        "Convertions",
+
+      ];
+      for (let column of headerOptions) {
+        let th = document.createElement("th");
+        th.append(column);
+        header.appendChild(th);
+      }
+      fragmentList.appendChild(header);
+
+      for (let fragment of data) {
+        let tr = document.createElement("tr");
+        let id = document.createElement("td");
+        let created = document.createElement("td");
+        let updated = document.createElement("td");
+        let Convertions = document.createElement("td");
+
+
+        let type = document.createElement("td");
+
+        // Get valid conversion array
+        let validConversionOptions = getValidConversions(fragment.type);
+
+
+
+        // CONVERSION LINKS
+        for (let conversionType of validConversionOptions) {
+          let a = document.createElement("a");
+          a.href = `#`;
+          a.addEventListener("click", () => {
+            showPreview(fragment.id, conversionType);
+          });
+          a.innerHTML = conversionType;
+          a.style = "margin-right: 10px";
+          Convertions.append(a);
+        }
+
+        id.append(fragment.id);
+        created.append(fragment.created);
+        updated.append(fragment.updated);
+        type.append(fragment.type);
+
+        tr.append(id, created, updated, type, Convertions);
+
+        fragmentList.appendChild(tr);
+      }
+    } else {
+      let td = document.createElement("td");
+      td.append("No fragments were found");
+
+      fragmentList.append(td);
+    }
+  });
+  fragmentList.html = fragmentHtml;
+}
+
+function showPreview(fragmentId, type) {
+  const outImage = document.querySelector("#preview-img");
+  const fragmentPreview = document.getElementById("output");
+  
+  // Clear out anything previous
+  outImage.src = "";
+  fragmentPreview.textContent = "";
+  // let data = getFragmentDataByExt(user, fragmentId, type);
+  getFragmentDataByExt(user, fragmentId, type).then((data) => {
+    type === ".png"
+      ? (outImage.src = data)
+      : (fragmentPreview.textContent = data);
+  });
+}
+
+function showEdit(fragmentId, ext) {
+  console.log("clicked button with id to update ", fragmentId);
+  viewFragmentsSection.hidden = true;
+  editFragmentSection.hidden = false;
+  editFragmentSection.querySelector(".editFragmentId").innerText = fragmentId;
+  
+  
+  showPreview(fragmentId, ext)
 }
 
 // Wait for the DOM to be ready, then start the app
-addEventListener('DOMContentLoaded', init);
+addEventListener("DOMContentLoaded", init);
